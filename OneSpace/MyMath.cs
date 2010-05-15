@@ -30,7 +30,7 @@ namespace OneSpace
         public static float ToAngle(Vector2 direction)
         {
             direction.Normalize();
-            return (float)Math.Atan2(direction.X, direction.Y);
+            return (float)Math.Atan2(direction.Y, direction.X);
         }
 
         public static float ToRelAngle(Vector2 To, Vector2 From)
