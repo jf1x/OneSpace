@@ -84,6 +84,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IconList.cs" />
     <Compile Include="Laser.cs" />
     <Compile Include="Level.cs" />
     <Compile Include="Menu.cs" />

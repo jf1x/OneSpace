@@ -17,10 +17,10 @@ namespace OneSpace
 
         public Level(bool[] Humans)
         {
-            Players[0] = new Player(Humans[0], new Color(255, 128, 128, 255), 0f, this, 0); ;
-            Players[1] = new Player(Humans[1], new Color(128, 128, 255, 255), MathHelper.PiOver2, this, 1);
-            Players[2] = new Player(Humans[2], new Color(128, 255, 128, 255), MathHelper.Pi, this, 2);
-            Players[3] = new Player(Humans[3], new Color(255, 255, 128, 255), -MathHelper.PiOver2, this, 3);
+            Players[0] = new Player(Humans[0], Color.Red, 0f, this, 0); ;
+            Players[1] = new Player(Humans[1], Color.Blue, MathHelper.PiOver2, this, 1);
+            Players[2] = new Player(Humans[2], Color.Green, MathHelper.Pi, this, 2);
+            Players[3] = new Player(Humans[3], Color.Yellow, -MathHelper.PiOver2, this, 3);
         }
 
         public void Update(GameTime gameTime)

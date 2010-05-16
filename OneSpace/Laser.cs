@@ -15,6 +15,8 @@ namespace OneSpace
         public Vector2 Target;
         public static Texture2D Pixel;
 
+        public int Width = 1;
+
         public Laser(Ship S)
         {
             myShip = S;
@@ -22,7 +24,7 @@ namespace OneSpace
 
         public void Update(GameTime gameTime)
         {
-            if (AliveTimer.HasTimeElapsed(gameTime, 200))
+            if (AliveTimer.HasTimeElapsed(gameTime, myShip.FiringRate / 2))
             {
                 DrawMe = false;
             }
@@ -41,7 +43,7 @@ namespace OneSpace
 
             spriteBatch.Draw(
                 Pixel,
-                new Rectangle((int)myShip.Position.X, (int)myShip.Position.Y, (int)Vector2.Distance(myShip.Position, Target), 1),
+                new Rectangle((int)myShip.Position.X, (int)myShip.Position.Y, (int)Vector2.Distance(myShip.Position, Target), Width),
                 new Rectangle(0, 0, 1, 1),
                 myShip.myPlayer.Colour,
                 MyMath.ToAngle(Target - myShip.Position),
