@@ -128,8 +128,15 @@ namespace OneSpace
                 }
             }
 
+            if (TargetPosition.X == 99999 && TargetPosition.Y == 99999)
+            {
+                targetedShip = null;
+                targetedMothership = null;
+                TargetPosition = myPlayer.MotherShipVec;
+            }
+
             //Laser Position is always updated, even if it's not being drawn
-            Laser.Target = TargetPosition;
+            if (targetedShip != null || targetedMothership != null) Laser.Target = TargetPosition;
 
             //Accelerate in its direction
             Vector2 AccDir = Vector2.Normalize(TargetPosition - Position) * AccelerationForce;
@@ -143,6 +150,21 @@ namespace OneSpace
                 {
                     if (targetedMothership != null) targetedMothership.MotherShipHP -= (int)(AttackPower * myPlayer.DamageModifier);
                     if (targetedShip != null) targetedShip.HitPoints -= (int)(AttackPower * myPlayer.DamageModifier);
+
+                    for (int j = 0; j < OneSpace.Random.Next(2, 4); j++)
+                    {
+                        if (targetedMothership != null)
+                        {
+                            myLevel.Particles.Add(new Particle(myPlayer.Colour, targetedMothership.MotherShipVec, 1, gameTime));
+                            Audio.PlayCue("laser");
+                        }
+                        if (targetedShip != null)
+                        {
+                            myLevel.Particles.Add(new Particle(myPlayer.Colour, targetedShip.Position, 1, gameTime));
+                            Audio.PlayCue("laser");
+                        }
+                    }
+
                     Laser.Reset(gameTime);
                     FiringTimer.Reset(gameTime);
                 }

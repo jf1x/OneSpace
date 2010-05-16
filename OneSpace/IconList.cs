@@ -10,14 +10,15 @@ namespace OneSpace
     public class IconList : ProgressBar
     {
         public static Texture2D[] Icons = new Texture2D[7];
-        public int Highlighted = 0;
+        public int Highlighted = -1;
 
         public Color Faded = new Color(255, 255, 255, 150);
+        public Color PlayerC;
 
         public IconList(Vector2 Pos, int Width, int Height, float Rot, int Value, Color C)
             : base(Pos, Width, Height, Rot, Value, C)
         {
-
+            PlayerC = C;
         }
 
         public new void Draw(SpriteBatch spriteBatch)
@@ -28,7 +29,7 @@ namespace OneSpace
                     Icons[i],
                     new Rectangle((int)(MathHelper.Lerp(LowerLeft.X, LowerRight.X, i / (float)Value)), (int)(MathHelper.Lerp(LowerLeft.Y, LowerRight.Y, i / (float)Value)), Icons[i].Width, Icons[i].Height),
                     null,
-                    (i == Highlighted ? Color.White : Faded),
+                    (i == Highlighted ? PlayerC : Faded),
                     MathHelper.ToRadians(Angle),
                     new Vector2(Icons[i].Width / 2, Icons[i].Height / 2),
                     SpriteEffects.None,

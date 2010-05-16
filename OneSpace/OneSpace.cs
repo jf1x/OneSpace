@@ -19,10 +19,11 @@ namespace OneSpace
     public class OneSpace : Microsoft.Xna.Framework.Game
     {
         public static OneSpace theGame;
+        public static Random Random;
 
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        SpriteFont spriteFont;
+        public SpriteFont spriteFont;
 
         public GamePadState[] OldGamePadState = new GamePadState[4];
         public GamePadState[] NewGamePadState = new GamePadState[4];
@@ -30,11 +31,16 @@ namespace OneSpace
         public KeyboardState NewKeyboardState;
 
         public Level level;
+        public Menu menu;
 
         public List<Ship> AllShips = new List<Ship>();
+        public Timer resetTimer = new Timer();
+        public bool gameEnded = false;
+        public ProgressBar resetBar = new ProgressBar(new Vector2(512, 384), 300, 20, 0, 5000, Color.White);
 
         public OneSpace()
         {
+            resetBar.EndMarks = false;
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
         }
@@ -52,7 +58,11 @@ namespace OneSpace
 
             graphics.PreferredBackBufferHeight = 768;
             graphics.PreferredBackBufferWidth = 1024;
+            //graphics.ToggleFullScreen();
             graphics.ApplyChanges();
+
+            Random = new Random();
+            Audio.Initialise();
 
             base.Initialize();
         }
@@ -74,7 +84,9 @@ namespace OneSpace
             Ship._largeShipTex = Content.Load<Texture2D>("largeShip");
             Ship._lightTex = Content.Load<Texture2D>("colouredLight");
             Level.BackgroundTex = Content.Load<Texture2D>("background");
+            Player._ESPIndicator = Content.Load<Texture2D>("ESP");
             Laser.Pixel = Content.Load<Texture2D>("whitePix");
+            Menu._logos = Content.Load<Texture2D>("titlescreen");
 
             IconList.Icons[0] = Content.Load<Texture2D>("emChg");
             IconList.Icons[1] = Content.Load<Texture2D>("smallIcon");
@@ -85,8 +97,8 @@ namespace OneSpace
             IconList.Icons[6] = Content.Load<Texture2D>("spdPlus");
 
 
-            bool[] h = {true, false, false, false};
-            level = new Level(h);
+            menu = new Menu();
+            //level = new Level(h);
 
             // TODO: use this.Content to load your game content here
         }
@@ -114,7 +126,43 @@ namespace OneSpace
             NewGamePadState[3] = GamePad.GetState(PlayerIndex.Four);
             NewKeyboardState = Keyboard.GetState();
 
-            level.Update(gameTime);
+            if (level != null)
+            {
+                level.Update(gameTime);
+
+                if (level.Winner > -1 && !gameEnded)
+                {
+                    resetBar.CurrentValue = 5000;
+                    resetTimer.Reset(gameTime);
+                    gameEnded = true;
+                }
+
+                if (gameEnded)
+                {
+                    if (resetTimer.TimeElapsed(gameTime) > 5000)
+                    {
+                        AllShips.Clear();
+                        level = null;
+                        menu = new Menu();
+                        gameEnded = false;
+                        menu.startTimer.Reset(gameTime);
+                    }
+                    else
+                    {
+                        resetBar.CurrentValue = 5000 - resetTimer.TimeElapsed(gameTime);
+                    }
+                }
+            }
+            else
+            {
+                menu.Update(gameTime);
+
+                if (menu.startTimer.TimeElapsed(gameTime) >= 10000)
+                {
+                    level = new Level(menu.Humans);
+                    menu = null;
+                }
+            }
 
             for (int i = 0; i < 4; i++)
                 OldGamePadState[i] = NewGamePadState[i];
@@ -136,34 +184,63 @@ namespace OneSpace
             //XNA performs a lot better when the same texture is drawn as a batch.
             spriteBatch.Begin();
 
-            level.Draw(spriteBatch);
-
-            foreach (Player p in level.Players)
-                p.Draw(spriteBatch);
-
-            foreach (Ship s in AllShips)
-                s.Laser.Draw(spriteBatch);
-
-            foreach (Ship s in AllShips)
-                if (s.Type == ShipType.Large) s.DrawSelf(spriteBatch);
-
-            foreach (Ship s in AllShips)
-                if (s.Type == ShipType.Medium) s.DrawSelf(spriteBatch);
-
-            foreach (Ship s in AllShips)
-                if (s.Type == ShipType.Small) s.DrawSelf(spriteBatch);
-
-            foreach (Player p in level.Players)
+            if (level != null)
             {
-                p.HealthBar.Draw(spriteBatch);
-                p.ChargeBar.Draw(spriteBatch);
-                p.IconBar.Draw(spriteBatch);
+                level.Draw(spriteBatch);
 
-                //spriteBatch.DrawString(
-                //    spriteFont,
-                //    p.ChargeBar.CurrentValue.ToString(),
-                //    p.ChargeBar.Position,
-                //    Color.LightBlue);
+                foreach (Player p in level.Players)
+                    p.Draw(spriteBatch);
+
+                foreach (Ship s in AllShips)
+                    s.Laser.Draw(spriteBatch);
+
+                foreach (Ship s in AllShips)
+                    if (s.Type == ShipType.Large) s.DrawSelf(spriteBatch);
+
+                foreach (Ship s in AllShips)
+                    if (s.Type == ShipType.Medium) s.DrawSelf(spriteBatch);
+
+                foreach (Ship s in AllShips)
+                    if (s.Type == ShipType.Small) s.DrawSelf(spriteBatch);
+
+                foreach (Particle p in level.Particles)
+                    p.Draw(spriteBatch);
+
+                foreach (Player p in level.Players)
+                {
+                    p.EMPulse.Draw(spriteBatch);
+                    p.HealthBar.Draw(spriteBatch);
+                    p.ChargeBar.Draw(spriteBatch);
+                    p.EMBar.Draw(spriteBatch);
+                    p.PowerBar.Draw(spriteBatch);
+                    p.SpeedBar.Draw(spriteBatch);
+                    p.IconBar.Draw(spriteBatch);
+
+                    spriteBatch.Draw(
+                        Player._ESPIndicator,
+                            new Rectangle((int)p.MotherShipVec.X, (int)p.MotherShipVec.Y, p.MotherShipTex.Width, p.MotherShipTex.Height),
+                            null,
+                            Color.White,
+                            p.MotherShipAng,
+                            new Vector2(p.MotherShipTex.Width / 2, p.MotherShipTex.Height / 2),
+                            SpriteEffects.None,
+                            0.8f);
+                }
+
+                if (gameEnded)
+                {
+                    spriteBatch.DrawString(
+                        spriteFont,
+                        "P" + (level.Winner + 1).ToString() + " WINS!",
+                        new Vector2(430, 300),
+                        Color.White);
+
+                    resetBar.Draw(spriteBatch);
+                }
+            }
+            else
+            {
+                menu.Draw(spriteBatch);
             }
 
 
@@ -172,6 +249,26 @@ namespace OneSpace
             // TODO: Add your drawing code here
 
             base.Draw(gameTime);
+        }
+    }
+
+    public static class Audio
+    {
+        public static AudioEngine engine;
+        public static SoundBank soundBank;
+        public static WaveBank waveBank;
+
+        public static void Initialise()
+        {
+            engine = new AudioEngine("Content\\OneSpaceAudio.xgs");
+            soundBank = new SoundBank(engine, "Content\\Sound Bank.xsb");
+            waveBank = new WaveBank(engine, "Content\\Wave Bank.xwb");
+        }
+
+        public static void PlayCue(string sfx)
+        {
+            Cue cue = soundBank.GetCue(sfx);
+            cue.Play();
         }
     }
 }
